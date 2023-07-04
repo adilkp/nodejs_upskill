@@ -3,7 +3,7 @@ const Employee = require("../models/employeeModel")
 //get all employees
 
 const getAllEmployees = asyncHandler (async (req, res) => {
-    const employees = await Employee.find()
+    const employees = await Employee.find({user_id: req.user.id})
   res.status(200).json(employees);
 });
 
@@ -20,7 +20,8 @@ const createEmployee = asyncHandler (async  (req, res) => {
   const employee = await Employee.create({
     name,
     email,
-    phone
+    phone,
+    user_id: req.user.id
   })
   res.status(201).json(employee);
 });
@@ -44,6 +45,12 @@ const updateEmployee = asyncHandler (async  (req, res) => {
         res.status(404)
         throw new Error(`Employee with given id: ${req.params.id} not found`);
     }
+
+    if(employee.user_id.toString() !== req.user.id) {
+      res.status(403)
+      throw new Error("User does not have access to other users information !!!")
+    }
+
     const updatedEmployee = await Employee.findByIdAndUpdate(
         req.params.id,
         req.body,
@@ -60,7 +67,13 @@ const deleteEmployee = asyncHandler (async (req, res) => {
         res.status(404)
         throw new Error(`Employee with given id: ${req.params.id} not found`);
     }
-    await Employee.deleteOne(employee)
+
+    if(employee.user_id.toString() !== req.user.id) {
+      res.status(403)
+      throw new Error("User does not have access to other users information !!!")
+    }
+
+    await Employee.deleteOne({_id: req.params.id})
   res.status(200).json(employee);
 });
 

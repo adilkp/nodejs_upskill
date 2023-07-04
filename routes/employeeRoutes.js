@@ -7,6 +7,9 @@ const {
     updateEmployee,
     deleteEmployee,
   } = require("../controllers/employeeController")
+const validateToken = require("../middleware/validateTokenHandler")
+
+router.use(validateToken)
 
 router.route("/").get(getAllEmployees).post(createEmployee)
 
